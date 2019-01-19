@@ -1,53 +1,78 @@
 module MetaLearning
 
 using Flux
-using Distributions: Uniform
+using Distributions: Uniform, Normal
 using Statistics: mean
 using Printf
-#= using Plots =#
+using Plots
 using Base.Iterators: partition
 using Random: randperm
 
-export SineTask, transfer_learn, maml, reptile, eval_model
+export SineWave, Linear, transfer_learn, maml, reptile, eval_model, 
+       xavier_uniform, plot_eval_data 
 
-#= plot([x, test_x, test_x, test_x], [y, test_y, init_preds, final_preds], =#
-#=              line=[:scatter :path :path :path], =#
-#=              labels=["Sampled points", "Ground truth", "Before fitting", "After fitting"]) =#
 
 """
+```
+eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave(); 
+           opt=Descent(1e-2), updates=32)
+```
+
+Evaluates the `model` on a sine wave `task` training to sample `x` with `updates`
+amount of gradient steps using `opt`. 
+
+Evaluation loss is calculated based on the mean squared error
+between model predictions and sine wave values on `testx`.
 """
-function eval_model(model, task=SineTask(); opt=Descent(1e-2), batch_size=10, updates=32)
+function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave(); 
+                    opt=Descent(1e-2), updates=32)
     weights = params(model)
     prev_weights = deepcopy(Flux.data.(weights))
 
-    #= x, y = test_set(task, batch_size, Uniform(-5, 0)) =#
-    x, y = minibatch(task, batch_size)
-    test_x, test_y = test_set(task)
+    y = task(x)
+    testy = task(testx)
+    init_preds = model(testx')
+    test_loss = Flux.mse(init_preds, testy')
 
-    init_preds = model(test_x')
-    test_loss = Flux.mse(init_preds, test_y')
-    @printf("Task amplitude = %f, phase shift = %f\n", task.amplitude, task.phase_shift)
+    test_losses = Float32[]
+    push!(test_losses, Flux.data(test_loss))
+
+    print(task)
     @printf("Before finetuning, Loss = %f\n", test_loss)
-
     for i in 1:updates
         l = Flux.mse(model(x'), y')
         Flux.back!(l)
         Flux.Optimise.update!(opt, weights)
-        test_loss = Flux.mse(model(test_x'), test_y')
+        test_loss = Flux.mse(model(testx'), testy')
+        push!(test_losses, Flux.data(test_loss))
         @printf("After %d fits, Loss = %f\n", i, test_loss)
     end
-    final_preds = model(test_x')
+    final_preds = model(testx')
 
-    # reset weights
+    # reset weights to state before finetune
     for (w1, w2) in zip(weights, prev_weights)
         w1.data .= w2
         w1.grad .= 0
     end
 
-    return x, test_x, y, test_y, Array(Flux.data(init_preds)'), Array(Flux.data(final_preds)')
+    return (x=x, testx=testx, y=y, testy=testy, 
+            initial_predictions=Array(Flux.data(init_preds)'),
+            final_predictions=Array(Flux.data(final_preds)'), 
+            test_losses=test_losses)
+end
+
+function plot_sine_data(data::NamedTuple, title="")
+    return plot([data.x, data.testx, data.testx, data.testx], 
+                [data.y, data.testy, data.initial_predictions, data.final_predictions],
+                line=[:scatter :path :path :path],
+                label=["Sampled points", "Ground truth", "Before finetune", "After finetune"],
+                foreground_color_legend=:white, background_color_legend=:transparent,
+                title=title, 
+                xlim=(-5.5, 5.5))
 end
 
 include("sine.jl")
+include("linear.jl")
 include("transfer.jl")
 include("maml.jl")
 include("reptile.jl")
