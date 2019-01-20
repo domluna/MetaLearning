@@ -37,7 +37,7 @@ function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave
     test_losses = Float32[]
     push!(test_losses, Flux.data(test_loss))
 
-    print(task)
+    print(task, "\n")
     @printf("Before finetuning, Loss = %f\n", test_loss)
     for i in 1:updates
         l = Flux.mse(model(x'), y')
@@ -61,7 +61,7 @@ function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave
             test_losses=test_losses)
 end
 
-function plot_sine_data(data::NamedTuple, title="")
+function plot_eval_data(data::NamedTuple, title="")
     return plot([data.x, data.testx, data.testx, data.testx], 
                 [data.y, data.testy, data.initial_predictions, data.final_predictions],
                 line=[:scatter :path :path :path],
