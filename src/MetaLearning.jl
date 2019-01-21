@@ -25,7 +25,7 @@ Evaluation loss is calculated based on the mean squared error
 between model predictions and sine wave values on `testx`.
 """
 function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave(); 
-                    opt=Descent(1e-2), updates=32)
+                    opt=Descent(0.02), updates=32)
     weights = params(model)
     prev_weights = deepcopy(Flux.data.(weights))
 
@@ -52,7 +52,7 @@ function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave
     # reset weights to state before finetune
     for (w1, w2) in zip(weights, prev_weights)
         w1.data .= w2
-        w1.grad .= 0
+        w1.grad .= 0f0
     end
 
     return (x=x, testx=testx, y=y, testy=testy, 

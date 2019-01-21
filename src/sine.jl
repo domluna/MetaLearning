@@ -1,7 +1,7 @@
 
 struct SineWave
-    amplitude::Float64
-    phase_shift::Float64
+    amplitude::Float32
+    phase_shift::Float32
 end
 SineWave() = SineWave(rand(Uniform(0.1, 5)), rand(Uniform(0, 2pi)))
 
