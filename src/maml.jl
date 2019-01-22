@@ -23,7 +23,7 @@ function maml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_
                 g = Flux.Optimise.update!(inner_opt, w.data, grad[w].data)
                 w.data .-= g
             end
-            
+
             testy = task(testx)
             grad = Flux.Tracker.gradient(() -> Flux.mse(model(testx'), testy'), weights)
 
@@ -32,6 +32,7 @@ function maml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_
                 w1.data .= w2
                 w1.grad .+= grad[w1].data
             end
+
         end
 
         Flux.Optimise.update!(meta_opt, weights)

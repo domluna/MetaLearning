@@ -50,10 +50,7 @@ function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave
     final_preds = model(testx')
 
     # reset weights to state before finetune
-    for (w1, w2) in zip(weights, prev_weights)
-        w1.data .= w2
-        w1.grad .= 0f0
-    end
+    Flux.loadparams!(model, prev_weights)
 
     return (x=x, testx=testx, y=y, testy=testy, 
             initial_predictions=Array(Flux.data(init_preds)'),
