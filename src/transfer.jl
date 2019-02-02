@@ -12,7 +12,7 @@ function transfer_learn(model; opt=Descent(0.01), epochs=30_000,
         y = task(x)
         l = Flux.mse(model(x'), y')
         Flux.back!(l)
-        Flux.Optimise.update!(opt, weights)
+        Flux.Optimise._update_params!(opt, weights)
 
         if i % eval_interval == 0
             @printf("Iteration %d, evaluating model on random task...\n", i)

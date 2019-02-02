@@ -14,20 +14,18 @@ function reptile(model; meta_opt=Descent(0.1), inner_opt=Descent(0.02), epochs=3
         prev_weights = deepcopy(Flux.data.(weights))
         task = SineWave()
 
+        # Train on task for k steps on the dataset
         y = task(x)
         for idx in partition(randperm(length(x)), train_batch_size)
-        #= for _ in 1:5 =#
-            #= x = rand(dist, train_batch_size) =#
-            #= y = task(x) =#
             l = Flux.mse(model(x[idx]'), y[idx]')
-            #= l = Flux.mse(model(x'), y') =#
             Flux.back!(l)
-            Flux.Optimise.update!(inner_opt, weights)
+            Flux.Optimise._update_params!(inner_opt, weights)
         end
 
+        # Reptile update
         for (w1, w2) in zip(weights, prev_weights)
-            g = Flux.Optimise.update!(meta_opt, w2, w1.data - w2)
-            @. w1.data = w2 + g
+            gw = Flux.Optimise.apply!(meta_opt, w2, w1.data - w2)
+            @. w1.data = w2 + gw
         end
 
         if i % eval_interval == 0

@@ -1,8 +1,8 @@
 
 """
-First-order MAML
+First-order MAML (FOMAML)
 """
-function maml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_000, 
+function fomaml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_000, 
               n_tasks=3, train_batch_size=10, eval_batch_size=10, eval_interval=1000)
 
     weights = params(model)
@@ -20,8 +20,7 @@ function maml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_
             grad = Flux.Tracker.gradient(() -> Flux.mse(model(x'), y'), weights)
 
             for w in weights
-                g = Flux.Optimise.update!(inner_opt, w.data, grad[w].data)
-                w.data .-= g
+                w.data .-= Flux.Optimise.apply!(inner_opt, w.data, grad[w].data)
             end
 
             testy = task(testx)
@@ -35,7 +34,7 @@ function maml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_
 
         end
 
-        Flux.Optimise.update!(meta_opt, weights)
+        Flux.Optimise._update_params!(meta_opt, weights)
 
         if i % eval_interval == 0
             @printf("Iteration %d, evaluating model on random task...\n", i)

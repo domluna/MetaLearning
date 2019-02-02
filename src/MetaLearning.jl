@@ -8,7 +8,7 @@ using Plots
 using Base.Iterators: partition
 using Random: randperm
 
-export SineWave, Linear, transfer_learn, maml, reptile, eval_model, 
+export SineWave, Linear, transfer_learn, fomaml, reptile, eval_model, 
        xavier_uniform, plot_eval_data 
 
 
@@ -42,7 +42,7 @@ function eval_model(model, x::AbstractArray, testx::AbstractArray, task=SineWave
     for i in 1:updates
         l = Flux.mse(model(x'), y')
         Flux.back!(l)
-        Flux.Optimise.update!(opt, weights)
+        Flux.Optimise._update_params!(opt, weights)
         test_loss = Flux.mse(model(testx'), testy')
         push!(test_losses, Flux.data(test_loss))
         @printf("After %d fits, Loss = %f\n", i, test_loss)
