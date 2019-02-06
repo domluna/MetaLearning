@@ -1,6 +1,8 @@
 
 """
-Reptile
+Reptile: A Scalable Meta-Learning Algorithm [1]
+
+[1] https://blog.openai.com/reptile/
 """
 function reptile(model; meta_opt=Descent(0.1), inner_opt=Descent(0.02), epochs=30_000, 
                  train_batch_size=10, eval_batch_size=10, eval_interval=1000)

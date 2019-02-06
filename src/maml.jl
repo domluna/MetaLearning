@@ -1,6 +1,9 @@
 
 """
-First-order MAML (FOMAML)
+First-order MAML (FOMAML) from 
+Model-Agnostic Meta-Learning for Fast Adapdation of Deep Networks [1].
+
+[1] https://arxiv.org/abs/1703.03400
 """
 function fomaml(model; meta_opt=Descent(0.01), inner_opt=Descent(0.02), epochs=30_000, 
               n_tasks=3, train_batch_size=10, eval_batch_size=10, eval_interval=1000)
