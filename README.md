@@ -1,5 +1,7 @@
 # MetaLearning
 
+> This has been moved to the [`model-zoo`](https://github.com/FluxML/model-zoo/blob/master/other/meta-learning/MetaLearning.jl).
+
 Meta-learning sine waves. See [this post](https://www.domluna.me/meta-learning/) for details.
 
 Example usage:
